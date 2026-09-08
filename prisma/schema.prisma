@@ -1,14 +1,14 @@
 // Prisma schema for 루페 (Loupe) — photographer booking platform
-// Uses SQLite by default so the project runs anywhere with zero external
-// setup. To move to Postgres/MySQL in production, change `provider` and
-// `url` below (and re-run `npx prisma migrate dev`).
+// Uses Postgres so the same database works both locally and once deployed
+// (e.g. on Vercel + Neon) — a serverless host can't rely on a local SQLite
+// file since its filesystem doesn't persist between deploys/requests.
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 

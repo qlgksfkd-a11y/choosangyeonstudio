@@ -6,8 +6,9 @@
 ## 무엇이 바뀌었나
 
 - **프레임워크**: 단일 JSX 프로토타입 → Next.js (App Router) 프로젝트
-- **데이터**: 하드코딩된 `PHOTOGRAPHERS` 배열 → Prisma ORM + SQLite 데이터베이스
-  (`Photographer`, `Inquiry` 테이블)
+- **데이터**: 하드코딩된 `PHOTOGRAPHERS` 배열 → Prisma ORM + Postgres 데이터베이스
+  (`Photographer`, `Inquiry` 테이블). Vercel 등 서버리스 호스팅에 배포해도 데이터가
+  사라지지 않도록 처음부터 클라우드 DB(Postgres)를 기준으로 만들었습니다.
 - **작가 목록**: 홈 화면이 `/api/photographers`를 호출해 DB에서 실시간으로 불러옵니다.
 - **문의하기**: 문의 폼 제출 시 `/api/inquiries`(POST)로 실제 DB에 저장됩니다
   (이전에는 로컬 state만 바뀌고 사라졌습니다).
@@ -17,27 +18,56 @@
   추가하면 서버 테이블로 옮기기 쉽도록 구조를 분리해뒀습니다.
 - 그 외 레이아웃, 색상, 타이포그래피, 화면 전환(홈 → 상세 → 문의) 흐름은 원본과 동일합니다.
 
-## 시작하기
+## 시작하기 (로컬에서 실행)
+
+1. `.env.example`을 복사해서 `.env` 파일을 만들고, `DATABASE_URL`에 실제 Postgres 접속
+   주소를 넣습니다. (아래 "인터넷에 배포하기"에서 만든 DB의 연결 주소를 그대로 써도 됩니다)
+2. 아래 명령 실행:
 
 ```bash
-npm install          # 의존성 설치 (Prisma client 자동 생성)
-npx prisma migrate dev   # DB 스키마 생성 + 시드 데이터 삽입 (최초 1회)
-npm run dev           # http://localhost:3000
+npm install    # 의존성 설치 (Prisma client 자동 생성)
+npm run dev    # http://localhost:3000 — 처음 실행 시 DB 스키마 생성 + 데이터 시드는
+               # `npm run build` 안에 포함돼 있으니, 로컬에서 스키마만 맞추고 싶다면
+               # `npm run db:push && npm run db:seed` 를 한 번 실행하세요.
 ```
 
-DB 파일은 `prisma/dev.db` (SQLite)로 생성되며 git에는 포함되지 않습니다. 다시 만들고 싶다면
-`npx prisma migrate reset`.
+## 인터넷에 배포하기 (Vercel + Neon, 둘 다 무료)
 
-## 프로덕션 배포 시 DB 교체
+지금까지 우리 컴퓨터 안에서만 돌아가던 사이트를, 누구나 접속할 수 있는 진짜 주소로
+만드는 과정입니다. 계정 가입/클릭 몇 번이면 끝나요.
 
-지금은 별도 설정 없이 바로 돌아가도록 SQLite를 기본값으로 썼습니다. 운영 환경에서
-Postgres/MySQL(예: Supabase, Neon, PlanetScale)로 옮기려면:
+### 1) 데이터베이스(Postgres) 무료로 만들기
 
-1. `prisma/schema.prisma`의 `datasource db`에서 `provider`를 `postgresql`(또는 `mysql`)로 변경
-2. `.env`의 `DATABASE_URL`을 해당 DB 접속 문자열로 교체
-3. `npx prisma migrate deploy`
+1. Vercel 대시보드(vercel.com)에 GitHub 계정으로 로그인/가입합니다.
+2. 프로젝트를 만들기 전이라면, 먼저 **Storage** 탭 → **Create Database** →
+   **Neon (Postgres)** 선택 → 무료 플랜으로 생성합니다.
+   (이미 프로젝트를 만들었다면 프로젝트의 **Storage** 탭에서도 같은 방식으로 추가할 수 있어요)
+3. 생성되면 `DATABASE_URL` 같은 이름의 연결 주소가 자동으로 발급됩니다. (이 값은 나중에
+   프로젝트에 자동으로 연결되니 따로 복사해둘 필요는 없습니다)
 
-애플리케이션 코드(API 라우트, 컴포넌트)는 Prisma를 통해서만 DB에 접근하므로 변경할 필요가 없습니다.
+### 2) 이 GitHub 저장소를 Vercel 프로젝트로 가져오기
+
+1. Vercel 대시보드에서 **Add New… → Project** 클릭
+2. `qlgksfkd-a11y/choosangyeonstudio` 저장소 선택 → **Import**
+3. **Environment Variables** 화면에서 위에서 만든 데이터베이스의 `DATABASE_URL`이
+   자동으로 채워져 있는지 확인합니다. (Storage에서 만든 DB를 프로젝트에 "Connect"
+   했다면 자동으로 들어가 있어요. 안 보이면 프로젝트 설정 → Storage에서 DB를 연결해주세요)
+4. **Deploy** 클릭
+
+빌드가 진행되면서 자동으로 ①데이터베이스에 표(스키마) 생성 → ②작가 15명 초기 데이터 저장
+→ ③사이트 빌드 순서로 실행됩니다. 몇 분 후 `https://프로젝트이름.vercel.app` 형태의
+주소가 발급되고, 그 주소로 바로 접속해서 실제로 동작하는 사이트를 볼 수 있어요.
+
+### 3) 이후 업데이트
+
+이 브랜치(`claude/database-connection-setup-6ruf5z`)에 새 코드를 올릴 때마다 Vercel이
+자동으로 다시 빌드해서 같은 주소에 반영합니다. 별도 명령을 실행할 필요가 없습니다.
+
+### 나중에 내 도메인을 연결하고 싶다면
+
+Vercel 프로젝트의 **Settings → Domains**에서 구매한 도메인(예: choosangyeonstudio.com)을
+추가하고, 도메인을 산 곳(가비아, 후이즈 등)에서 안내되는 DNS 값을 입력하면 연결됩니다.
+지금 당장은 필요 없고, 나중에 원하실 때 말씀해주시면 그때 같이 진행해요.
 
 ## 폴더 구조
 
@@ -50,8 +80,8 @@ app/
     photographers/       GET 목록 / [id] GET 상세
     inquiries/            POST 문의 등록
 prisma/
-  schema.prisma          DB 스키마
-  seed.js                초기 작가 데이터 시드
+  schema.prisma          DB 스키마 (Postgres)
+  seed.js                초기 작가 데이터 시드 (여러 번 실행해도 안전, upsert 방식)
 public/images/           작가/카테고리 사진
 lib/prisma.js            Prisma Client 싱글턴
 ```

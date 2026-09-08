@@ -1,0 +1,40 @@
+// Prisma schema for 루페 (Loupe) — photographer booking platform
+// Uses SQLite by default so the project runs anywhere with zero external
+// setup. To move to Postgres/MySQL in production, change `provider` and
+// `url` below (and re-run `npx prisma migrate dev`).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Photographer {
+  id         Int      @id @default(autoincrement())
+  name       String
+  studio     String
+  category   String
+  region     String
+  priceFrom  Int
+  tagline    String
+  bio        String
+  badge      String?
+  photoUrl   String?
+  createdAt  DateTime @default(now())
+  inquiries  Inquiry[]
+}
+
+model Inquiry {
+  id             Int          @id @default(autoincrement())
+  photographer   Photographer @relation(fields: [photographerId], references: [id])
+  photographerId Int
+  name           String
+  phone          String
+  category       String
+  date           String?
+  message        String
+  createdAt      DateTime     @default(now())
+}

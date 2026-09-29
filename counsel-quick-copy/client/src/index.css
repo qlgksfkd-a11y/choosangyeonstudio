@@ -1,0 +1,97 @@
+@import "tailwindcss";
+
+/* Editorial Cream: 따뜻한 아이보리 + 검정 텍스트 + 네이비 포인트 */
+@theme {
+  --font-display: "Playfair Display", "Noto Serif KR", Georgia, serif;
+  --font-sans: "DM Sans", "Pretendard", system-ui, -apple-system, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+
+  --color-cream: #f6f0e4;
+  --color-paper: #fffdf7;
+  --color-sand: #ebe3d1;
+  --color-ink: #171512;
+  --color-ink-soft: #57524a;
+  --color-rule: #cfc5ae;
+  --color-navy: #1f2a44;
+  --color-navy-deep: #141c30;
+  --color-danger: #a12a1f;
+  --color-success: #2f6b4a;
+
+  --radius-card: 4px;
+  --shadow-card: 0 1px 0 rgb(23 21 18 / 0.06), 0 2px 8px -2px rgb(23 21 18 / 0.10);
+  --shadow-lift: 0 10px 28px -8px rgb(23 21 18 / 0.28);
+}
+
+@layer base {
+  html {
+    background: var(--color-cream);
+    color: var(--color-ink);
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+  }
+  body {
+    margin: 0;
+    font-family: var(--font-sans);
+    min-height: 100dvh;
+    overscroll-behavior-y: none;
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-navy);
+    outline-offset: 2px;
+  }
+  button:not(:disabled),
+  [role="button"] {
+    cursor: pointer;
+  }
+}
+
+@layer components {
+  /* 버튼을 누르면 살짝 작아지는 피드백 */
+  .press {
+    transition: transform 120ms ease, background-color 150ms ease, box-shadow 150ms ease, border-color 150ms ease;
+  }
+  .press:active:not(:disabled) {
+    transform: scale(0.97);
+  }
+  .display {
+    font-family: var(--font-display);
+    letter-spacing: -0.01em;
+  }
+  .hairline {
+    border: 1px solid var(--color-rule);
+  }
+}
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes sheet-up {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes bar {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(350%); }
+}
+.anim-rise { animation: rise 200ms ease-out both; }
+.anim-sheet { animation: sheet-up 220ms ease-out both; }
+.anim-fade { animation: fade 150ms ease-out both; }
+.anim-bar { animation: bar 1.1s ease-in-out infinite; }
+
+/* 모바일 가로 스크롤 탭의 스크롤바 숨김 */
+.no-scrollbar { scrollbar-width: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .press:active:not(:disabled) { transform: none; }
+}
